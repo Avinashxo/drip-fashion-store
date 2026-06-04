@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% block title %}{% if category != 'all' %}{{ category|capitalize }} Clothing{% else %}All Products{% endif %} — DRIP{% endblock %}
+
+{% block extra_css %}
+<style>
+.page-layout { display:flex; gap:2rem; padding:2rem 4rem; min-height:70vh; }
+.sidebar { width:220px; flex-shrink:0; }
+.sidebar h3 { font-size:0.75rem; letter-spacing:2px; text-transform:uppercase; color:var(--grey); margin-bottom:1rem; margin-top:1.5rem; }
+.sidebar h3:first-child { margin-top:0; }
+.filter-list { list-style:none; }
+.filter-list li a {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:7px 0; color:var(--black); text-decoration:none; font-size:0.88rem;
+  border-bottom:1px solid var(--border); transition:color .2s;
+}
+.filter-list li a:hover, .filter-list li a.active { color:var(--accent); font-weight:600; }
+.main-content { flex:1; }
+.toolbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; }
+.results-count { font-size:0.88rem; color:var(--grey); }
+.sort-select {
+  border:1.5px solid var(--border); border-radius:8px;
+  padding:8px 14px; font-family:'DM Sans',sans-serif; font-size:0.85rem;
+  background:#fff; cursor:pointer; outline:none;
+}
+.active-filters { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:1rem; }
+.filter-tag {
+  display:inline-flex; align-items:center; gap:6px;
+  background:var(--cream); border:1px solid var(--border);
+  padding:5px 12px; border-radius:50px; font-size:0.8rem; font-weight:500;
+}
+.filter-tag a { color:var(--grey); text-decoration:none; font-size:0.75rem; }
+.empty-state { text-align:center; padding:5rem 2rem; color:var(--grey); }
+.empty-state .emoji { font-size:4rem; margin-bottom:1rem; }
+.empty-state h3 { font-family:'DM Serif Display',serif; font-size:1.8rem; color:var(--black); margin-bottom:.5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <h3>Category</h3>
+    <ul class="filter-list">
+      <li><a href="{{ url_for('products', sort=sort) }}" class="{{ 'active' if category == 'all' }}">All Products <span>{{ products|length }}</span></a></li>
+      <li><a href="{{ url_for('products', category='men', sort=sort) }}" class="{{ 'active' if category == 'men' }}">Men 👔</a></li>
+      <li><a href="{{ url_for('products', category='women', sort=sort) }}" class="{{ 'active' if category == 'women' }}">Women 👗</a></li>
+    </ul>
+
+    {% if category == 'men' or category == 'all' %}
+    <h3>Men's</h3>
+    <ul class="filter-list">
+      {% for s, label in [('tshirts','T-Shirts'), ('shirts','Shirts'), ('jeans','Jeans'), ('pants','Pants'), ('jackets','Jackets')] %}
+      <li><a href="{{ url_for('products', category='men', sub=s, sort=sort) }}" class="{{ 'active' if sub == s }}">{{ label }}</a></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if category == 'women' or category == 'all' %}
+    <h3>Women's</h3>
+    <ul class="filter-list">
+      {% for s, label in [('dresses','Dresses'), ('tops','Tops'), ('skirts','Skirts'), ('kurtis','Kurtis'), ('pants','Pants')] %}
+      <li><a href="{{ url_for('products', category='women', sub=s, sort=sort) }}" class="{{ 'active' if sub == s }}">{{ label }}</a></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+
+    <h3>Quick Filters</h3>
+    <ul class="filter-list">
+      <li><a href="{{ url_for('products', category=category, sort='rating') }}">⭐ Top Rated</a></li>
+      <li><a href="{{ url_for('products', category=category, sort='discount') }}">🔥 Best Deals</a></li>
+      <li><a href="{{ url_for('products', category=category, sort='price_low') }}">↑ Price Low-High</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="results-count">
+        <strong>{{ products|length }}</strong> items found
+        {% if search %} for "<em>{{ search }}</em>"{% endif %}
+      </div>
+      <form method="GET" action="{{ url_for('products') }}">
+        <input type="hidden" name="category" value="{{ category }}">
+        {% if sub %}<input type="hidden" name="sub" value="{{ sub }}">{% endif %}
+        {% if search %}<input type="hidden" name="q" value="{{ search }}">{% endif %}
+        <select name="sort" class="sort-select" onchange="this.form.submit()">
+          <option value="popular" {{ 'selected' if sort == 'popular' }}>Sort: Popular</option>
+          <option value="rating" {{ 'selected' if sort == 'rating' }}>Sort: Top Rated</option>
+          <option value="discount" {{ 'selected' if sort == 'discount' }}>Sort: Best Discount</option>
+          <option value="price_low" {{ 'selected' if sort == 'price_low' }}>Price: Low to High</option>
+          <option value="price_high" {{ 'selected' if sort == 'price_high' }}>Price: High to Low</option>
+        </select>
+      </form>
+    </div>
+
+    <!-- Active filters -->
+    {% if sub or search %}
+    <div class="active-filters">
+      {% if sub %}<span class="filter-tag">{{ sub|capitalize }} <a href="{{ url_for('products', category=category, sort=sort) }}">✕</a></span>{% endif %}
+      {% if search %}<span class="filter-tag">Search: {{ search }} <a href="{{ url_for('products', category=category, sort=sort) }}">✕</a></span>{% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Products -->
+    {% if products %}
+    <div class="product-grid">
+      {% for product in products %}
+      <div class="product-card">
+        <a href="{{ url_for('product_detail', pid=product.id) }}" style="text-decoration:none; color:inherit;">
+          <div class="product-img-wrap">
+            <img src="{{ product.image }}" alt="{{ product.name }}" loading="lazy">
+            {% if product.badge %}<span class="product-badge">{{ product.badge }}</span>{% endif %}
+          </div>
+        </a>
+        <a href="{{ url_for('toggle_wishlist', pid=product.id) }}" class="wishlist-btn {{ 'active' if product.id in wishlist_ids }}">
+          <i class="{{ 'fas' if product.id in wishlist_ids else 'far' }} fa-heart"></i>
+        </a>
+        <div class="product-info">
+          <div class="product-brand">{{ product.brand }}</div>
+          <a href="{{ url_for('product_detail', pid=product.id) }}" style="text-decoration:none;">
+            <div class="product-name">{{ product.name }}</div>
+          </a>
+          <div class="product-price">
+            <span class="price-current">₹{{ product.price }}</span>
+            <span class="price-original">₹{{ product.original_price }}</span>
+            <span class="price-off">{{ ((product.original_price - product.price) / product.original_price * 100)|int }}% off</span>
+          </div>
+          <div class="product-rating">
+            <span class="stars">⭐ {{ product.rating }}</span>
+            <span class="rating-count">({{ product.reviews }})</span>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="emoji">🔍</div>
+      <h3>No products found</h3>
+      <p>Try a different search or browse all products</p>
+      <a href="{{ url_for('products') }}" class="btn btn-dark" style="margin-top:1rem;">Browse All</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

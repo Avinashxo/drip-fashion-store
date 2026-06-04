@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% block title %}{{ product.name }} — DRIP{% endblock %}
+
+{% block extra_css %}
+<style>
+.detail-wrap { display:grid; grid-template-columns:1fr 1fr; gap:4rem; padding:3rem 4rem; max-width:1200px; margin:0 auto; }
+.product-gallery { position:relative; }
+.main-img {
+  width:100%; aspect-ratio:3/4; object-fit:cover;
+  border-radius:16px; border:1px solid var(--border);
+}
+.gallery-badge {
+  position:absolute; top:16px; left:16px;
+  background:var(--accent); color:#fff;
+  font-size:0.7rem; font-weight:700; letter-spacing:1px;
+  padding:5px 10px; border-radius:6px;
+}
+.wishlist-detail-btn {
+  position:absolute; top:16px; right:16px;
+  width:42px; height:42px; border-radius:50%;
+  background:#fff; border:none; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  color:#ccc; font-size:1.1rem;
+  box-shadow:0 2px 12px rgba(0,0,0,0.12);
+  text-decoration:none; transition:color .2s;
+}
+.wishlist-detail-btn.active, .wishlist-detail-btn:hover { color:var(--accent); }
+
+.product-info-panel { padding-top:.5rem; }
+.brand-name { font-size:0.85rem; color:var(--grey); text-transform:uppercase; letter-spacing:2px; }
+.product-title { font-family:'DM Serif Display',serif; font-size:1.9rem; margin:.4rem 0 1rem; line-height:1.2; }
+.price-row { display:flex; align-items:baseline; gap:12px; margin-bottom:.8rem; }
+.big-price { font-size:1.8rem; font-weight:700; }
+.big-original { text-decoration:line-through; color:#bbb; font-size:1rem; }
+.big-off { background:#e8f5e9; color:#2d9e2d; padding:4px 10px; border-radius:6px; font-weight:700; font-size:0.9rem; }
+.tax-note { font-size:0.78rem; color:var(--grey); margin-bottom:1.2rem; }
+.rating-row { display:flex; align-items:center; gap:12px; padding:1rem 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); margin-bottom:1.5rem; }
+.big-star { background:#2d9e2d; color:#fff; padding:5px 10px; border-radius:6px; font-weight:700; font-size:0.95rem; }
+.separator { color:var(--border); }
+
+.size-label { font-size:0.82rem; font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-bottom:.8rem; }
+.size-options { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:1.5rem; }
+.size-btn {
+  width:48px; height:48px; border-radius:8px;
+  border:1.5px solid var(--border); background:#fff;
+  font-family:'DM Sans',sans-serif; font-size:0.9rem; font-weight:500;
+  cursor:pointer; transition:all .2s;
+}
+.size-btn:hover { border-color:var(--black); }
+.size-btn.selected { background:var(--black); color:#fff; border-color:var(--black); }
+#size-hidden { display:none; }
+
+.add-btns { display:flex; gap:1rem; margin-bottom:2rem; }
+.add-btns .btn { flex:1; padding:15px; font-size:0.95rem; }
+.btn-cart { background:#fff; color:var(--black); border:2px solid var(--black); }
+.btn-cart:hover { background:var(--black); color:#fff; }
+.btn-buy { background:var(--accent); color:#fff; border:none; }
+.btn-buy:hover { background:#c1121f; }
+
+.offer-box { background:var(--cream); border-radius:10px; padding:1rem 1.2rem; margin-bottom:1.5rem; }
+.offer-box h4 { font-size:0.8rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:.6rem; }
+.offer-item { display:flex; align-items:flex-start; gap:8px; font-size:0.83rem; margin-bottom:.4rem; color:var(--grey); }
+.offer-item i { color:var(--accent); margin-top:2px; }
+
+.related-section { padding:2rem 4rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<div style="padding:1rem 4rem; font-size:0.82rem; color:var(--grey);">
+  <a href="{{ url_for('index') }}" style="color:var(--grey); text-decoration:none;">Home</a> /
+  <a href="{{ url_for('products', category=product.category) }}" style="color:var(--grey); text-decoration:none;">{{ product.category|capitalize }}</a> /
+  <span style="color:var(--black);">{{ product.name }}</span>
+</div>
+
+<div class="detail-wrap">
+  <!-- Gallery -->
+  <div class="product-gallery">
+    <img class="main-img" src="{{ product.image }}" alt="{{ product.name }}">
+    {% if product.badge %}<span class="gallery-badge">{{ product.badge }}</span>{% endif %}
+    <a href="{{ url_for('toggle_wishlist', pid=product.id) }}" class="wishlist-detail-btn {{ 'active' if product.id in wishlist_ids }}">
+      <i class="{{ 'fas' if product.id in wishlist_ids else 'far' }} fa-heart"></i>
+    </a>
+  </div>
+
+  <!-- Info Panel -->
+  <div class="product-info-panel">
+    <div class="brand-name">{{ product.brand }}</div>
+    <h1 class="product-title">{{ product.name }}</h1>
+
+    <div class="rating-row">
+      <span class="big-star">⭐ {{ product.rating }}</span>
+      <span style="font-size:0.85rem; color:var(--grey);">{{ product.reviews }} Ratings</span>
+      <span class="separator">|</span>
+      <span style="font-size:0.85rem; color:var(--grey);">{{ product.reviews // 12 }} Reviews</span>
+    </div>
+
+    <div class="price-row">
+      <span class="big-price">₹{{ product.price }}</span>
+      <span class="big-original">₹{{ product.original_price }}</span>
+      <span class="big-off">{{ ((product.original_price - product.price) / product.original_price * 100)|int }}% OFF</span>
+    </div>
+    <div class="tax-note">Inclusive of all taxes | Free delivery on this order</div>
+
+    <!-- Size Selector -->
+    <form action="{{ url_for('add_to_cart') }}" method="POST" id="cart-form">
+      <input type="hidden" name="product_id" value="{{ product.id }}">
+      <input type="hidden" name="next" value="stay">
+      <input type="hidden" name="size" id="size-hidden" value="{{ product.sizes[0] }}">
+
+      <div class="size-label">Select Size</div>
+      <div class="size-options">
+        {% for size in product.sizes %}
+        <button type="button" class="size-btn {{ 'selected' if loop.first }}"
+          onclick="selectSize(this, '{{ size }}')">{{ size }}</button>
+        {% endfor %}
+      </div>
+
+      <div class="offer-box">
+        <h4>🎁 Available Offers</h4>
+        <div class="offer-item"><i class="fas fa-tag"></i> 5% off on orders above ₹1999</div>
+        <div class="offer-item"><i class="fas fa-truck"></i> Free delivery above ₹999</div>
+        <div class="offer-item"><i class="fas fa-rotate-left"></i> 30-day easy return policy</div>
+      </div>
+
+      <div class="add-btns">
+        <button type="submit" class="btn btn-cart"><i class="fas fa-shopping-bag"></i> Add to Cart</button>
+        <a href="{{ url_for('checkout') }}" class="btn btn-buy" onclick="document.getElementById('cart-form').submit(); return false;">
+          <i class="fas fa-bolt"></i> Buy Now
+        </a>
+      </div>
+    </form>
+
+    <!-- Colors -->
+    <div style="margin-bottom:1.2rem;">
+      <div class="size-label">Available Colors</div>
+      <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+        {% for color in product.colors %}
+        <span style="padding:6px 14px; border-radius:50px; border:1.5px solid var(--border); font-size:0.82rem;">{{ color }}</span>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Delivery -->
+    <div style="background:var(--cream); border-radius:10px; padding:1rem 1.2rem;">
+      <div style="font-size:0.8rem; text-transform:uppercase; letter-spacing:1px; font-weight:600; margin-bottom:.6rem;">📍 Delivery & Returns</div>
+      <div style="font-size:0.83rem; color:var(--grey); line-height:1.7;">
+        Enter your pincode for delivery estimate<br>
+        <span style="color:#2d9e2d; font-weight:500;">✓ Usually delivered in 3-5 business days</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Related Products -->
+{% if related %}
+<div class="related-section">
+  <h2 class="section-title">You May Also Like</h2>
+  <p class="section-subtitle">More from {{ product.category }} collection</p>
+  <div class="product-grid">
+    {% for p in related %}
+    <div class="product-card">
+      <a href="{{ url_for('product_detail', pid=p.id) }}" style="text-decoration:none; color:inherit;">
+        <div class="product-img-wrap">
+          <img src="{{ p.image }}" alt="{{ p.name }}" loading="lazy">
+          {% if p.badge %}<span class="product-badge">{{ p.badge }}</span>{% endif %}
+        </div>
+      </a>
+      <a href="{{ url_for('toggle_wishlist', pid=p.id) }}" class="wishlist-btn {{ 'active' if p.id in wishlist_ids }}">
+        <i class="{{ 'fas' if p.id in wishlist_ids else 'far' }} fa-heart"></i>
+      </a>
+      <div class="product-info">
+        <div class="product-brand">{{ p.brand }}</div>
+        <a href="{{ url_for('product_detail', pid=p.id) }}" style="text-decoration:none;">
+          <div class="product-name">{{ p.name }}</div>
+        </a>
+        <div class="product-price">
+          <span class="price-current">₹{{ p.price }}</span>
+          <span class="price-original">₹{{ p.original_price }}</span>
+          <span class="price-off">{{ ((p.original_price - p.price) / p.original_price * 100)|int }}% off</span>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<script>
+function selectSize(btn, size) {
+  document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('size-hidden').value = size;
+}
+</script>
+{% endblock %}

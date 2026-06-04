@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}DRIP — Fashion Store{% endblock %}</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  :root {
+    --black: #0a0a0a;
+    --white: #fafafa;
+    --cream: #f5f0e8;
+    --accent: #e63946;
+    --accent2: #f4a261;
+    --grey: #888;
+    --light: #f0ede8;
+    --border: #e0dbd3;
+    --shadow: 0 4px 24px rgba(0,0,0,0.10);
+    --radius: 12px;
+  }
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+  body { font-family:'DM Sans',sans-serif; background:var(--white); color:var(--black); min-height:100vh; }
+
+  /* ── Navbar ── */
+  .navbar {
+    position:sticky; top:0; z-index:1000;
+    background:var(--black); color:var(--white);
+    padding:0 2rem;
+    display:flex; align-items:center; justify-content:space-between;
+    height:64px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+  }
+  .nav-brand {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:2rem; letter-spacing:4px;
+    color:var(--white); text-decoration:none;
+  }
+  .nav-brand span { color:var(--accent); }
+  .nav-links { display:flex; gap:1.5rem; align-items:center; }
+  .nav-links a {
+    color:#ccc; text-decoration:none; font-size:0.85rem;
+    font-weight:500; letter-spacing:1px; text-transform:uppercase;
+    transition:color .2s;
+  }
+  .nav-links a:hover { color:var(--white); }
+  .nav-links a.active { color:var(--accent); }
+  .nav-icons { display:flex; gap:1rem; align-items:center; }
+  .nav-icon-btn {
+    background:none; border:none; color:var(--white); cursor:pointer;
+    font-size:1.1rem; padding:8px; border-radius:8px;
+    transition:background .2s; text-decoration:none;
+    position:relative;
+  }
+  .nav-icon-btn:hover { background:rgba(255,255,255,0.1); }
+  .badge {
+    position:absolute; top:0; right:0;
+    background:var(--accent); color:#fff;
+    font-size:0.6rem; font-weight:700;
+    width:16px; height:16px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .search-bar {
+    display:flex; align-items:center;
+    background:rgba(255,255,255,0.1);
+    border:1px solid rgba(255,255,255,0.15);
+    border-radius:8px; overflow:hidden;
+    transition:background .2s;
+  }
+  .search-bar:focus-within { background:rgba(255,255,255,0.15); }
+  .search-bar input {
+    background:none; border:none; outline:none;
+    color:var(--white); padding:8px 12px; font-size:0.85rem;
+    font-family:'DM Sans',sans-serif; width:200px;
+  }
+  .search-bar input::placeholder { color:#aaa; }
+  .search-bar button {
+    background:none; border:none; color:#aaa;
+    padding:8px 12px; cursor:pointer;
+  }
+
+  /* ── Flash messages ── */
+  .flash-container { position:fixed; top:80px; right:1.5rem; z-index:2000; display:flex; flex-direction:column; gap:.5rem; }
+  .flash-msg {
+    padding:12px 20px; border-radius:10px; font-size:0.88rem; font-weight:500;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    animation: slideIn .3s ease;
+    display:flex; align-items:center; gap:8px;
+  }
+  .flash-success { background:#1a1a2e; color:#4ade80; border-left:3px solid #4ade80; }
+  .flash-error   { background:#1a1a2e; color:#f87171; border-left:3px solid #f87171; }
+  .flash-info    { background:#1a1a2e; color:#60a5fa; border-left:3px solid #60a5fa; }
+  @keyframes slideIn { from { transform:translateX(100px); opacity:0; } to { transform:translateX(0); opacity:1; } }
+
+  /* ── Footer ── */
+  footer {
+    background:var(--black); color:#888;
+    padding:3rem 4rem 1.5rem;
+    margin-top:4rem;
+  }
+  .footer-grid { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:2rem; margin-bottom:2rem; }
+  .footer-brand { font-family:'Bebas Neue',sans-serif; font-size:2.5rem; color:var(--white); letter-spacing:4px; }
+  .footer-brand span { color:var(--accent); }
+  .footer-tagline { font-size:0.85rem; margin-top:.5rem; line-height:1.6; }
+  .footer-col h4 { color:var(--white); font-size:0.8rem; letter-spacing:2px; text-transform:uppercase; margin-bottom:1rem; }
+  .footer-col a { display:block; color:#888; text-decoration:none; font-size:0.85rem; margin-bottom:.5rem; transition:color .2s; }
+  .footer-col a:hover { color:var(--accent); }
+  .footer-bottom { border-top:1px solid #222; padding-top:1.5rem; text-align:center; font-size:0.8rem; }
+
+  /* ── Utilities ── */
+  .btn {
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding:12px 28px; border-radius:8px; font-family:'DM Sans',sans-serif;
+    font-size:0.9rem; font-weight:600; cursor:pointer; border:none;
+    text-decoration:none; transition:all .2s; letter-spacing:.5px;
+  }
+  .btn-primary { background:var(--accent); color:#fff; }
+  .btn-primary:hover { background:#c1121f; transform:translateY(-1px); }
+  .btn-dark { background:var(--black); color:#fff; }
+  .btn-dark:hover { background:#222; }
+  .btn-outline { background:none; color:var(--black); border:2px solid var(--black); }
+  .btn-outline:hover { background:var(--black); color:#fff; }
+  .btn-sm { padding:8px 18px; font-size:0.82rem; }
+
+  .container { max-width:1200px; margin:0 auto; padding:0 2rem; }
+  .section-title {
+    font-family:'DM Serif Display',serif; font-size:2.2rem;
+    margin-bottom:.3rem;
+  }
+  .section-subtitle { color:var(--grey); font-size:0.9rem; margin-bottom:2rem; }
+
+  /* ── Product Card ── */
+  .product-card {
+    background:#fff; border-radius:var(--radius); overflow:hidden;
+    transition:transform .25s, box-shadow .25s;
+    border:1px solid var(--border);
+    position:relative;
+  }
+  .product-card:hover { transform:translateY(-6px); box-shadow:var(--shadow); }
+  .product-img-wrap {
+    position:relative; overflow:hidden;
+    padding-top:130%; /* 4:5 ratio */
+  }
+  .product-img-wrap img {
+    position:absolute; inset:0; width:100%; height:100%;
+    object-fit:cover; transition:transform .4s;
+  }
+  .product-card:hover .product-img-wrap img { transform:scale(1.05); }
+  .product-badge {
+    position:absolute; top:10px; left:10px;
+    background:var(--accent); color:#fff;
+    font-size:0.65rem; font-weight:700; letter-spacing:1px;
+    padding:4px 8px; border-radius:4px;
+  }
+  .wishlist-btn {
+    position:absolute; top:10px; right:10px;
+    width:34px; height:34px; border-radius:50%;
+    background:rgba(255,255,255,0.9); border:none; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    color:#ccc; font-size:0.95rem; transition:all .2s;
+    text-decoration:none;
+  }
+  .wishlist-btn.active, .wishlist-btn:hover { color:var(--accent); background:#fff; }
+  .product-info { padding:12px 14px 14px; }
+  .product-brand { font-size:0.72rem; color:var(--grey); text-transform:uppercase; letter-spacing:1px; }
+  .product-name { font-size:0.9rem; font-weight:500; margin:.2rem 0; color:var(--black); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .product-price { display:flex; align-items:baseline; gap:8px; margin:.4rem 0; }
+  .price-current { font-weight:700; font-size:1rem; color:var(--black); }
+  .price-original { text-decoration:line-through; color:#bbb; font-size:0.82rem; }
+  .price-off { color:#2d9e2d; font-size:0.78rem; font-weight:600; }
+  .product-rating { display:flex; align-items:center; gap:6px; font-size:0.78rem; }
+  .stars { background:#2d9e2d; color:#fff; padding:2px 6px; border-radius:4px; font-weight:600; font-size:0.75rem; }
+  .rating-count { color:var(--grey); }
+  .product-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1.2rem; }
+
+  @media(max-width:900px) {
+    .product-grid { grid-template-columns:repeat(2,1fr); }
+    .footer-grid { grid-template-columns:1fr 1fr; }
+    .nav-links { display:none; }
+    .search-bar input { width:130px; }
+  }
+</style>
+{% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <a href="{{ url_for('index') }}" class="nav-brand">DR<span>I</span>P</a>
+  <div class="nav-links">
+    <a href="{{ url_for('products', category='men') }}">Men</a>
+    <a href="{{ url_for('products', category='women') }}">Women</a>
+    <a href="{{ url_for('products') }}">All</a>
+  </div>
+  <form action="{{ url_for('products') }}" method="GET" class="search-bar">
+    <input type="text" name="q" placeholder="Search brands, clothes…" autocomplete="off">
+    <button type="submit"><i class="fas fa-search"></i></button>
+  </form>
+  <div class="nav-icons">
+    <a href="{{ url_for('wishlist') }}" class="nav-icon-btn" title="Wishlist">
+      <i class="fas fa-heart"></i>
+    </a>
+    <a href="{{ url_for('cart') }}" class="nav-icon-btn" title="Cart">
+      <i class="fas fa-shopping-bag"></i>
+      {% if cart_count > 0 %}<span class="badge">{{ cart_count }}</span>{% endif %}
+    </a>
+  </div>
+</nav>
+
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="flash-container" id="flashContainer">
+    {% for cat, msg in messages %}
+    <div class="flash-msg flash-{{ cat }}">
+      {% if cat == 'success' %}<i class="fas fa-check-circle"></i>
+      {% elif cat == 'error' %}<i class="fas fa-exclamation-circle"></i>
+      {% else %}<i class="fas fa-info-circle"></i>{% endif %}
+      {{ msg }}
+    </div>
+    {% endfor %}
+  </div>
+  <script>
+    setTimeout(() => {
+      const el = document.getElementById('flashContainer');
+      if(el) el.style.opacity = '0', el.style.transition = 'opacity .5s', setTimeout(()=>el.remove(),500);
+    }, 3000);
+  </script>
+  {% endif %}
+{% endwith %}
+
+{% block content %}{% endblock %}
+
+<!-- Footer -->
+<footer>
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand">DR<span>I</span>P</div>
+      <p class="footer-tagline">India's freshest fashion destination.<br>Wear what you feel. Feel what you wear.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Shop</h4>
+      <a href="{{ url_for('products', category='men') }}">Men</a>
+      <a href="{{ url_for('products', category='women') }}">Women</a>
+      <a href="{{ url_for('products', sort='discount') }}">Sale</a>
+      <a href="{{ url_for('products', sort='rating') }}">Top Rated</a>
+    </div>
+    <div class="footer-col">
+      <h4>Help</h4>
+      <a href="#">Returns & Exchanges</a>
+      <a href="#">Size Guide</a>
+      <a href="#">Track Order</a>
+      <a href="#">Contact Us</a>
+    </div>
+    <div class="footer-col">
+      <h4>Company</h4>
+      <a href="#">About Us</a>
+      <a href="#">Careers</a>
+      <a href="#">Press</a>
+      <a href="#">Privacy Policy</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    © 2024 DRIP Fashion. Made with ❤️ for college project.
+  </div>
+</footer>
+</body>
+</html>

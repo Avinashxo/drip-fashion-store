@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Order Placed! — DRIP{% endblock %}
+{% block content %}
+<div style="text-align:center; padding:6rem 2rem; max-width:600px; margin:0 auto;">
+  <div style="font-size:5rem; margin-bottom:1rem; animation: bounce 1s ease;">🎉</div>
+  <h1 style="font-family:'DM Serif Display',serif; font-size:2.5rem; margin-bottom:.5rem;">Order Placed!</h1>
+  <p style="color:var(--grey); font-size:1rem; margin-bottom:2rem; line-height:1.7;">
+    Your order <strong style="color:var(--black);">#{{ order_id }}</strong> has been confirmed.<br>
+    Expected delivery in 3–5 business days. 📦
+  </p>
+  <div style="background:var(--cream); border-radius:16px; padding:1.5rem; margin-bottom:2rem; text-align:left;">
+    <div style="font-size:0.8rem; text-transform:uppercase; letter-spacing:1px; color:var(--grey); margin-bottom:1rem;">What's next?</div>
+    <div style="display:flex; flex-direction:column; gap:.8rem; font-size:0.9rem;">
+      <div>📧 Confirmation email sent to your inbox</div>
+      <div>🚚 Order will be shipped within 24 hours</div>
+      <div>📱 Track your order via SMS updates</div>
+      <div>🔄 Easy returns within 30 days</div>
+    </div>
+  </div>
+  <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
+    <a href="{{ url_for('products') }}" class="btn btn-primary">Continue Shopping</a>
+    <a href="{{ url_for('index') }}" class="btn btn-outline">Go Home</a>
+  </div>
+</div>
+<style>
+@keyframes bounce { 0%,100%{transform:scale(1)} 50%{transform:scale(1.2)} }
+</style>
+{% endblock %}
